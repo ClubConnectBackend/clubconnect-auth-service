@@ -1,86 +1,41 @@
 package com.clubconnect.auth.model;
 
-import java.util.Collection;
-import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
-import jakarta.persistence.CollectionTable;
-import jakarta.persistence.Column;
-import jakarta.persistence.ElementCollection;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.Table;
+/**
+ * Represents a User entity to be stored in DynamoDB.
+ */
+public class User {
 
-@Entity
-@Table(name = "users")
-public class User implements UserDetails {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    private Long id;
-
-    @Column(nullable = false, unique = true, length = 50)
     private String username;
-
-    @Column(nullable = false, length = 64)
-    private String password;
-
-    @Column(nullable = false, unique = true, length = 50)
     private String email;
+    private String password;
+    private String role; // Single role (e.g., ROLE_ADMIN or ROLE_USER)
+    private Set<Integer> attendedEvents; // Set of event IDs the user is attending
 
-    @ElementCollection(fetch = FetchType.EAGER)
-    @CollectionTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id"))
-    @Column(name = "role")
-    private Set<String> roles = new HashSet<>();
+    // Default constructor
+    public User() {}
 
-    public User() {
-    }
-
-    public User(String username, String password, String email) {
-        this.username = username;
-        this.password = password;
-        this.email = email;
-    }
-
-    public User(String username, String email, String password, Set<String> roles) {
+    // Parameterized constructor
+    public User(String username, String email, String password, String role, Set<Integer> attendedEvents) {
         this.username = username;
         this.email = email;
         this.password = password;
-        this.roles = roles;
+        this.role = role;
+        this.attendedEvents = attendedEvents;
     }
 
     // Getters and setters
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
     public String getUsername() {
         return username;
     }
 
     public void setUsername(String username) {
         this.username = username;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
     }
 
     public String getEmail() {
@@ -91,39 +46,72 @@ public class User implements UserDetails {
         this.email = email;
     }
 
-    public Set<String> getRoles() {
-        return roles;
+    public String getPassword() {
+        return password;
     }
 
-    public void setRoles(Set<String> roles) {
-        this.roles = roles;
+    public void setPassword(String password) {
+        this.password = password;
     }
 
-    // Overridden methods from UserDetails
+    public String getRole() {
+        return role;
+    }
+
+    public void setRole(String role) {
+        this.role = role;
+    }
+
+    public Set<Integer> getAttendedEvents() {
+        return attendedEvents;
+    }
+
+    public void setAttendedEvents(Set<Integer> attendedEvents) {
+        this.attendedEvents = attendedEvents;
+    }
+
+    /**
+     * Converts this User object to a DynamoDB attribute map.
+     *
+     * @return a map of AttributeValue for DynamoDB storage
+     */
+    public Map<String, AttributeValue> toDynamoDbMap() {
+        return Map.of(
+            "username", AttributeValue.builder().s(this.username).build(),
+            "email", AttributeValue.builder().s(this.email).build(),
+            "password", AttributeValue.builder().s(this.password).build(),
+            "role", AttributeValue.builder().s(this.role).build(),
+            "attendedEvents", AttributeValue.builder().ns(this.attendedEvents.stream()
+                .map(String::valueOf)
+                .collect(Collectors.toSet())).build()
+        );
+    }
+
+    /**
+     * Creates a User object from a DynamoDB attribute map.
+     *
+     * @param item the DynamoDB item map
+     * @return a User object
+     */
+    public static User fromDynamoDbMap(Map<String, AttributeValue> item) {
+        return new User(
+            item.get("username").s(),
+            item.get("email").s(),
+            item.get("password").s(),
+            item.get("role").s(),
+            item.containsKey("attendedEvents") ? item.get("attendedEvents").ns().stream()
+                .map(Integer::valueOf)
+                .collect(Collectors.toSet()) : Set.of()
+        );
+    }
+
     @Override
-    public Collection<? extends GrantedAuthority> getAuthorities() {
-        return roles.stream()
-                    .map(SimpleGrantedAuthority::new)
-                    .collect(Collectors.toList());
-    }
-
-    @Override
-    public boolean isAccountNonExpired() {
-        return true; // Update based on your application logic
-    }
-
-    @Override
-    public boolean isAccountNonLocked() {
-        return true; // Update based on your application logic
-    }
-
-    @Override
-    public boolean isCredentialsNonExpired() {
-        return true; // Update based on your application logic
-    }
-
-    @Override
-    public boolean isEnabled() {
-        return true; // Update based on your application logic
+    public String toString() {
+        return "User{" +
+                "username='" + username + '\'' +
+                ", email='" + email + '\'' +
+                ", role='" + role + '\'' +
+                ", attendedEvents=" + attendedEvents +
+                '}';
     }
 }

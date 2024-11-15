@@ -32,9 +32,9 @@ public class SecurityConfig {
         http
             .csrf(csrf -> csrf.disable()) // Disable CSRF protection
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/auth/**").permitAll() // Open endpoints
-                .requestMatchers("/api/private/**").hasRole("USER") // USER role
-                .requestMatchers("/api/admin/**").hasRole("ADMIN") // ADMIN role
+                .requestMatchers("/api/auth/**").permitAll() // Allow unauthenticated access to auth endpoints
+                .requestMatchers("/api/private/**").hasAuthority("ROLE_USER") // Requires ROLE_USER
+                .requestMatchers("/api/admin/**").hasAuthority("ROLE_ADMIN") // Requires ROLE_ADMIN
                 .anyRequest().authenticated()) // All other endpoints require authentication
             .sessionManagement(session -> session
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // Stateless session management
