@@ -1,10 +1,17 @@
 HELP.md
+
+### Build Directories ###
 target/
 !.mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
 !**/src/test/**/target/
 
-### STS ###
+build/
+!**/src/main/**/build/
+!**/src/test/**/build/
+
+### IDE-specific Files ###
+# Spring Tool Suite (STS)
 .apt_generated
 .classpath
 .factorypath
@@ -13,21 +20,63 @@ target/
 .springBeans
 .sts4-cache
 
-### IntelliJ IDEA ###
+# IntelliJ IDEA
 .idea
 *.iws
 *.iml
 *.ipr
 
-### NetBeans ###
+# NetBeans
 /nbproject/private/
 /nbbuild/
 /dist/
 /nbdist/
 /.nb-gradle/
-build/
-!**/src/main/**/build/
-!**/src/test/**/build/
 
-### VS Code ###
+# Visual Studio Code
 .vscode/
+
+### Logs ###
+*.log
+*.out
+*.err
+
+### Temporary Files ###
+*.tmp
+*.bak
+*.swp
+*.old
+*.orig
+
+### OS-specific Files ###
+.DS_Store
+Thumbs.db
+
+### Environment Files ###
+.env
+.env.local
+
+### Docker ###
+.dockerignore
+**/Dockerfile*
+docker-compose*.yml
+
+### Copilot ###
+copilot/
+
+### AWS Credentials ###
+*.pem
+*.key
+aws-credentials.json
+
+### Node.js (if applicable) ###
+node_modules/
+package-lock.json
+yarn.lock
+
+### Backup and Miscellaneous ###
+*.~backup
+*.swp
+*.swo
+*.rej
+*~#
