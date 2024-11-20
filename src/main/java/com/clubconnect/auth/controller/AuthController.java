@@ -1,6 +1,8 @@
 package com.clubconnect.auth.controller;
 
 import java.util.HashSet;
+import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,6 +25,8 @@ import com.clubconnect.auth.service.UserService;
 import com.clubconnect.auth.util.JwtUtil;
 
 import jakarta.servlet.http.HttpServletRequest;
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
+
 
 @RestController
 @RequestMapping("/api/auth")
@@ -146,6 +150,29 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error retrieving events: " + e.getMessage());
         }
     }
+
+    @GetMapping("/email/{username}")
+    public ResponseEntity<?> getUserEmailByUsername(@PathVariable String username) {
+        try {
+            Optional<Map<String, AttributeValue>> userOptional = userService.findByUsername(username);
+            
+            if (userOptional.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found.");
+            }
+            
+            Map<String, AttributeValue> user = userOptional.get();
+            if (user.containsKey("email") && user.get("email").s() != null) { // Use s() instead of getS()
+                String email = user.get("email").s(); // Extract the String value using s()
+                return ResponseEntity.ok(email);
+            } else {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Email not found for the user.");
+            }
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error retrieving email: " + e.getMessage());
+        }
+    }
+    
+
 
     static class LoginRequest {
         private String username;
